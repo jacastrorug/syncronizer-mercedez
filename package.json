@@ -1,0 +1,12 @@
+{
+  "name": "syncronizer-mercedez",
+  "version": "1.0.1",
+  "main": "index.js",
+  "repository": "git@github.com:jacastrorug/syncronizer-mercedez.git",
+  "author": "jacastrorug <juliancastroruge@gmail.com>",
+  "license": "GNU",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^4.6.2"
+  }
+}
