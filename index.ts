@@ -15,7 +15,6 @@ const main = async () => {
         const DNSConnection = await Utils.getDNSConnection();
 
         const accessories = await getAccesoriesFromDNS(DNSConnection);
-        console.log(accessories.length);
         await syncronizeAccessories(accessories);
 
         console.log(`Done ✅`);
@@ -106,9 +105,10 @@ const syncronizeAccessories = async (accessories: AccessoryDNS[]) => {
         } catch (error) {
             console.info(`The accessory: ${accessory.description} - ${accessory.codigoStock} can't be updated: ${error}`);
         }
+
     }
 
-
+    conexion.end();
 };
 
 

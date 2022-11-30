@@ -1,7 +1,11 @@
 import * as MSSQL from "mssql";
 import * as MySQL from "mysql2";
+import * as SSH2 from "ssh2";
+
+import { SSHConnection } from "./sshConnection";
 import { AccessoryStock } from "../models/AccessoryStock";
 import { Environment } from "../models/Environment";
+import { ForwardConfig } from "../models/ForwardConfig";
 import { PostMetaWP } from "../models/PostMetaWP";
 
 export const getDNSConnection = async (): Promise<MSSQL.ConnectionPool> => {
@@ -21,13 +25,48 @@ export const getDNSConnection = async (): Promise<MSSQL.ConnectionPool> => {
 
 export const getStoreConnection = async (): Promise<MySQL.Connection> => {
 
-    const sqlStoreConfig: MySQL.ConnectionOptions = {
-        user: process.env.DB_LOAD_USER,
-        password: process.env.DB_LOAD_PASSWORD,
-        host: process.env.DB_LOAD_HOST,
+    if(process.env.SYNC_ENV !== Environment.PROD) {
+        const sqlStoreConfig: MySQL.ConnectionOptions = {
+            user: process.env.DB_LOAD_USER,
+            password: process.env.DB_LOAD_PASSWORD,
+            host: process.env.DB_LOAD_HOST,
+        };
+    
+        return MySQL.createConnection(sqlStoreConfig);
+    }
+
+    const configSSHConnection: SSH2.ConnectConfig = {
+        host: process.env.SSH_STORE_HOST,
+        port: parseInt(process.env.SSH_STORE_PORT),
+        username: process.env.SSH_STORE_USER,
+        password: process.env.SSH_STORE_PASSWORD
     };
 
-    return MySQL.createConnection(sqlStoreConfig);
+    const dbConfig: MySQL.ConnectionOptions = {
+        host: process.env.DB_SSH_STORE_HOST,
+        port: parseInt(process.env.DB_SSH_STORE_PORT),
+        user: process.env.DB_SSH_STORE_USER,
+        password: process.env.DB_SSH_STORE_PASSWORD,
+        database: process.env.DB_SSH_STORE_NAME
+    };
+
+    const forwardConfig: ForwardConfig = {
+        srcHost: configSSHConnection.host,
+        srcPort: configSSHConnection.port,
+        dstHost: dbConfig.host,
+        dstPort: dbConfig.port
+    };
+
+    try {
+        const sshConnection: MySQL.Connection = await SSHConnection(configSSHConnection, dbConfig, forwardConfig);
+
+        return sshConnection;
+    } catch(error) {
+        console.error(error);
+
+        throw new Error('The SSH connection to the STORE fail ❌, please review connection config.');
+    }
+
 }
 
 export const parseAccesoryCode = (codigo: string): string => {
