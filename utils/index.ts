@@ -82,7 +82,7 @@ export const getStoreDBName = (): string => {
         return process.env.DB_LOAD_NAME_DEV ?? '';
     }
 
-    return process.env.DB_LOAD_NAME_PROD ?? '';
+    return process.env.DB_SSH_STORE_NAME ?? '';
 };
 
 export const getStorePrefix = (): string => {
